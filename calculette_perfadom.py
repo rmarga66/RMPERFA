@@ -6,7 +6,7 @@ from reportlab.lib.utils import ImageReader
 import tempfile
 import os
 
-# Chemin vers le logo (modifiez le nom si nécessaire)
+# Chemin vers le logo
 LOGO_PATH = "logo.png"
 
 # Intégration complète des forfaits
@@ -23,6 +23,7 @@ FORFAITS = {
     # Suivis
     "SA_S1": {"description": "Suivi hebdomadaire - Système actif", "tarif": 83.95, "type": "Suivi", "cat": "SA"},
     "DIFF_S1": {"description": "Suivi hebdomadaire - Diffuseur", "tarif": 38.16, "type": "Suivi", "cat": "DIFF"},
+    "GRAV_S1": {"description": "Suivi hebdomadaire - Gravité", "tarif": 63.35, "type": "Suivi", "cat": "GRAV"},
     "NUT_ENT_S1": {"description": "Suivi hebdomadaire - Nutrition entérale sans pompe", "tarif": 50.33, "type": "Suivi", "cat": "NUT_ENT"},
     "NUT_ENT_S2": {"description": "Suivi hebdomadaire - Nutrition entérale avec pompe", "tarif": 68.52, "type": "Suivi", "cat": "NUT_ENT"},
     "NUT_PAR_S1": {"description": "Suivi hebdomadaire - Nutrition parentérale", "tarif": 158.33, "type": "Suivi", "cat": "NUT_PAR"},
@@ -30,10 +31,12 @@ FORFAITS = {
     # Consommables par jour
     "SA_C1_D": {"description": "Consommables par jour - Système actif", "tarif": 200.12, "type": "Consommables", "cat": "SA"},
     "DIFF_C1_D": {"description": "Consommables par jour - Diffuseur", "tarif": 180.10, "type": "Consommables", "cat": "DIFF"},
+    "GRAV_C1_D": {"description": "Consommables par jour - Gravité", "tarif": 120.33, "type": "Consommables", "cat": "GRAV"},
 
     # Consommables par semaine
     "SA_C1_W": {"description": "Consommables par semaine - Système actif", "tarif": 1300.84, "type": "Consommables", "cat": "SA"},
     "DIFF_C1_W": {"description": "Consommables par semaine - Diffuseur", "tarif": 1260.70, "type": "Consommables", "cat": "DIFF"},
+    "GRAV_C1_W": {"description": "Consommables par semaine - Gravité", "tarif": 890.70, "type": "Consommables", "cat": "GRAV"},
     "NUT_PAR_C1_W": {"description": "Consommables par semaine - Nutrition parentérale", "tarif": 695.70, "type": "Consommables", "cat": "NUT_PAR"},
 }
 
@@ -79,9 +82,9 @@ st.title("💉 Calculatrice LPPR Complète avec Facture")
 
 # Informations client
 st.header("📋 Informations du client")
-nom = st.text_input("Nom")
-prenom = st.text_input("Prénom")
-numero_sap = st.text_input("Numéro client SAP")
+nom = st.text_input("Nom", help="Entrez le nom du client")
+prenom = st.text_input("Prénom", help="Entrez le prénom du client")
+numero_sap = st.text_input("Numéro client SAP", help="Entrez le numéro SAP du client")
 
 # Forfait d'installation
 st.header("📌 Forfaits d'installation")
@@ -126,7 +129,7 @@ if st.button("🧮 Calculer et Générer Facture"):
         details.append([FORFAITS[key]["description"], qte, tarif])
 
     df = pd.DataFrame(details, columns=["Description", "Quantité", "Coût total (€)"])
-    st.table(df)
+    st.dataframe(df.style.set_properties(**{'background-color': 'turquoise', 'color': 'black'}))
 
     if not nom or not prenom or not numero_sap:
         st.error("⚠️ Veuillez remplir les informations du client pour générer la facture.")
@@ -135,4 +138,4 @@ if st.button("🧮 Calculer et Générer Facture"):
         with open(pdf_file, "rb") as file:
             st.download_button("💾 Télécharger la facture", file, file_name="facture_lppr.pdf", mime="application/pdf")
 
-        st.success(f"💰 Total à payer : {total:.2f} €")
+        st.success(f"💰 Total à payer : {total:.2f} €", icon="💶")
