@@ -1,69 +1,130 @@
-import tkinter as tk
-from tkinter import messagebox
+import streamlit as st
 
-# Tarifs PERFADOM (exemple basique)
-TARIFS = {
-    "PERFADOM 1": 390.00,
-    "PERFADOM 4": 250.00,
-    "PERFADOM 6": 50.00,
-    "PERFADOM 7": 110.00,
-    "PERFADOM 8": 50.00,
-    "PERFADOM 10": 39.00,
-    "PERFADOM 13": 269.00,
-    "PERFADOM 18": 83.00,
+# Tarifs et descriptions pour PERFADOM, Nutrition Entérale, Parentérale, et Immunothérapie
+FORFAITS = {
+    # PERFADOM
+    "PERFADOM 1": {
+        "description": "Installation initiale - Système actif électrique",
+        "tarif": 390.00,
+        "frequence": "Unique",
+    },
+    "PERFADOM 4": {
+        "description": "Installation initiale - Diffuseur",
+        "tarif": 250.00,
+        "frequence": "Unique",
+    },
+    "PERFADOM 6": {
+        "description": "Installation initiale - Perfusion par gravité",
+        "tarif": 50.00,
+        "frequence": "Unique",
+    },
+    "PERFADOM 7": {
+        "description": "Suivi hebdomadaire - Système actif électrique",
+        "tarif": 110.00,
+        "frequence": "Hebdomadaire",
+    },
+    "PERFADOM 8": {
+        "description": "Suivi hebdomadaire - Diffuseur",
+        "tarif": 50.00,
+        "frequence": "Hebdomadaire",
+    },
+    "PERFADOM 10": {
+        "description": "Consommables - 1 perfusion/semaine avec système actif ou diffuseur",
+        "tarif": 39.00,
+        "frequence": "Hebdomadaire",
+    },
+    "PERFADOM 13": {
+        "description": "Consommables - 1 perfusion/jour avec système actif ou diffuseur",
+        "tarif": 269.00,
+        "frequence": "Quotidien",
+    },
+    "PERFADOM 18": {
+        "description": "Consommables - 1 perfusion/jour par gravité",
+        "tarif": 83.00,
+        "frequence": "Quotidien",
+    },
+    # Nutrition Entérale
+    "Nutrition Entérale 1": {
+        "description": "Installation initiale - Nutrition entérale",
+        "tarif": 150.00,
+        "frequence": "Unique",
+    },
+    "Nutrition Entérale 2": {
+        "description": "Suivi hebdomadaire - Nutrition entérale",
+        "tarif": 60.00,
+        "frequence": "Hebdomadaire",
+    },
+    # Nutrition Parentérale
+    "Nutrition Parentérale 1": {
+        "description": "Installation initiale - Nutrition parentérale avec pompe",
+        "tarif": 450.00,
+        "frequence": "Unique",
+    },
+    "Nutrition Parentérale 2": {
+        "description": "Suivi hebdomadaire - Nutrition parentérale avec pompe",
+        "tarif": 200.00,
+        "frequence": "Hebdomadaire",
+    },
+    # Immunothérapie
+    "Immunothérapie 1": {
+        "description": "Installation initiale - Immunothérapie avec pompe",
+        "tarif": 500.00,
+        "frequence": "Unique",
+    },
+    "Immunothérapie 2": {
+        "description": "Suivi hebdomadaire - Immunothérapie",
+        "tarif": 250.00,
+        "frequence": "Hebdomadaire",
+    },
 }
 
-# Fonction de calcul
-def calculer_cout():
-    try:
-        type_perfusion = type_perfusion_var.get()
-        duree = int(duree_var.get())
-        frequence = frequence_var.get()
+# Titre de l'application
+st.title("Calculatrice PERFADOM, Nutrition et Immunothérapie")
 
-        # Récupérer le tarif correspondant
-        tarif = TARIFS.get(type_perfusion, 0)
-        
-        if frequence == "Quotidien":
-            total = tarif * duree
-        elif frequence == "Hebdomadaire":
-            total = tarif * (duree // 7)
-        else:
-            total = 0
+st.write("""
+Cette application permet de calculer automatiquement le coût total d'un traitement en fonction du type de forfait (PERFADOM, nutrition entérale, nutrition parentérale ou immunothérapie), de la durée et de la fréquence.
+""")
 
-        # Afficher le résultat
-        result_label.config(text=f"Coût total : {total:.2f} €")
-    except ValueError:
-        messagebox.showerror("Erreur", "Veuillez entrer une durée valide.")
+# Sélection du forfait
+forfait_selectionne = st.selectbox(
+    "Sélectionnez le forfait :",
+    options=list(FORFAITS.keys()),
+    format_func=lambda key: f"{key} - {FORFAITS[key]['description']}",
+)
 
-# Interface utilisateur
-app = tk.Tk()
-app.title("Calculatrice PERFADOM")
+# Affichage des détails du forfait
+forfait_details = FORFAITS[forfait_selectionne]
+st.write(f"**Description :** {forfait_details['description']}")
+st.write(f"**Tarif :** {forfait_details['tarif']} €")
+st.write(f"**Fréquence d'application :** {forfait_details['frequence']}")
 
-# Type de perfusion
-tk.Label(app, text="Type de perfusion :").grid(row=0, column=0, padx=10, pady=10)
-type_perfusion_var = tk.StringVar()
-type_perfusion_menu = tk.OptionMenu(app, type_perfusion_var, *TARIFS.keys())
-type_perfusion_menu.grid(row=0, column=1, padx=10, pady=10)
+# Entrée : Durée du traitement
+if forfait_details["frequence"] != "Unique":
+    duree = st.number_input(
+        "Durée du traitement (en jours) :", 
+        min_value=1, 
+        step=1
+    )
+else:
+    duree = 1
+    st.write("Ce forfait est appliqué une seule fois (installation).")
 
-# Fréquence
-tk.Label(app, text="Fréquence :").grid(row=1, column=0, padx=10, pady=10)
-frequence_var = tk.StringVar()
-frequence_menu = tk.OptionMenu(app, frequence_var, "Quotidien", "Hebdomadaire")
-frequence_menu.grid(row=1, column=1, padx=10, pady=10)
+# Calcul automatique du coût
+if st.button("Calculer le coût total"):
+    tarif = forfait_details["tarif"]
+    frequence = forfait_details["frequence"]
 
-# Durée
-tk.Label(app, text="Durée (en jours) :").grid(row=2, column=0, padx=10, pady=10)
-duree_var = tk.StringVar()
-duree_entry = tk.Entry(app, textvariable=duree_var)
-duree_entry.grid(row=2, column=1, padx=10, pady=10)
+    if frequence == "Quotidien":
+        total = tarif * duree
+    elif frequence == "Hebdomadaire":
+        total = tarif * (duree // 7 + (1 if duree % 7 > 0 else 0))  # On arrondit à la semaine supérieure
+    elif frequence == "Unique":
+        total = tarif
+    else:
+        total = 0
 
-# Bouton de calcul
-calculer_btn = tk.Button(app, text="Calculer", command=calculer_cout)
-calculer_btn.grid(row=3, column=0, columnspan=2, pady=20)
+    # Affichage du résultat
+    st.success(f"Coût total : {total:.2f} €")
 
-# Résultat
-result_label = tk.Label(app, text="Coût total : -")
-result_label.grid(row=4, column=0, columnspan=2, pady=10)
-
-# Lancer l'application
-app.mainloop()
+# Footer
+st.caption("Application créée pour calculer les coûts PERFADOM, Nutrition et Immunothérapie.")
