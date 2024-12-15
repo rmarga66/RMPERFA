@@ -4,8 +4,12 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.utils import ImageReader
 import tempfile
+import os
 
-# Intégration complète de toutes les lignes PERFADOM, NUT ENT, NUT PAR, IMMUNO
+# Chemin vers le logo (modifiez le nom si nécessaire)
+LOGO_PATH = "logo.png"
+
+# Intégration complète des forfaits
 FORFAITS = {
     # Installations
     "SA_I1": {"description": "Installation 1 - Système actif électrique", "tarif": 297.67, "type": "Installation", "cat": "SA"},
@@ -23,41 +27,25 @@ FORFAITS = {
     "NUT_ENT_S2": {"description": "Suivi hebdomadaire - Nutrition entérale avec pompe", "tarif": 68.52, "type": "Suivi", "cat": "NUT_ENT"},
     "NUT_PAR_S1": {"description": "Suivi hebdomadaire - Nutrition parentérale", "tarif": 158.33, "type": "Suivi", "cat": "NUT_PAR"},
 
-    # Consommables - Gravité
-    "GRAV_C1": {"description": "Gravité - 1 perf/jour", "tarif": 63.35, "type": "Consommables", "cat": "GRAV"},
-    "GRAV_C2": {"description": "Gravité - 2 perf/jour", "tarif": 119.83, "type": "Consommables", "cat": "GRAV"},
-    "GRAV_C3": {"description": "Gravité - Plus de 2 perf/jour", "tarif": 170.20, "type": "Consommables", "cat": "GRAV"},
+    # Consommables par jour
+    "SA_C1_D": {"description": "Consommables par jour - Système actif", "tarif": 200.12, "type": "Consommables", "cat": "SA"},
+    "DIFF_C1_D": {"description": "Consommables par jour - Diffuseur", "tarif": 180.10, "type": "Consommables", "cat": "DIFF"},
 
-    # Consommables - Système Actif
-    "SA_C1": {"description": "Système actif - 1 perf/jour", "tarif": 200.12, "type": "Consommables", "cat": "SA"},
-    "SA_C2": {"description": "Système actif - 2 perf/jour", "tarif": 379.14, "type": "Consommables", "cat": "SA"},
-    "SA_C3": {"description": "Système actif - 3 perf/jour", "tarif": 539.39, "type": "Consommables", "cat": "SA"},
-    "SA_C4": {"description": "Système actif - Plus de 3 perf/jour", "tarif": 679.32, "type": "Consommables", "cat": "SA"},
-
-    # Consommables - Diffuseur
-    "DIFF_C1": {"description": "Diffuseur - 1 perf/jour", "tarif": 180.10, "type": "Consommables", "cat": "DIFF"},
-    "DIFF_C2": {"description": "Diffuseur - 2 perf/jour", "tarif": 341.22, "type": "Consommables", "cat": "DIFF"},
-    "DIFF_C3": {"description": "Diffuseur - 3 perf/jour", "tarif": 485.45, "type": "Consommables", "cat": "DIFF"},
-    "DIFF_C4": {"description": "Diffuseur - Plus de 3 perf/jour", "tarif": 611.38, "type": "Consommables", "cat": "DIFF"},
-
-    # Consommables - Nutrition parentérale
-    "NUT_PAR_C1": {"description": "Consommables parentérale < 5j/7", "tarif": 95.84, "type": "Consommables", "cat": "NUT_PAR"},
-    "NUT_PAR_C2": {"description": "Consommables parentérale 6-7j/7", "tarif": 158.33, "type": "Consommables", "cat": "NUT_PAR"},
-
-    # Consommables - Immunothérapie
-    "IMMUNO_SC_C": {"description": "Immunothérapie SC - 1 perf/semaine", "tarif": 39.96, "type": "Consommables", "cat": "IMMUNO"},
-    "IMMUNO_IV_C": {"description": "Immunothérapie IV - 1 perf/jour", "tarif": 39.96, "type": "Consommables", "cat": "IMMUNO"},
+    # Consommables par semaine
+    "SA_C1_W": {"description": "Consommables par semaine - Système actif", "tarif": 1300.84, "type": "Consommables", "cat": "SA"},
+    "DIFF_C1_W": {"description": "Consommables par semaine - Diffuseur", "tarif": 1260.70, "type": "Consommables", "cat": "DIFF"},
+    "NUT_PAR_C1_W": {"description": "Consommables par semaine - Nutrition parentérale", "tarif": 695.70, "type": "Consommables", "cat": "NUT_PAR"},
 }
 
 # Fonction pour générer la facture PDF
-def generer_facture_pdf(details, total, nom, prenom, numero_sap, logo_path):
+def generer_facture_pdf(details, total, nom, prenom, numero_sap):
     temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
     c = canvas.Canvas(temp_file.name, pagesize=A4)
     width, height = A4
 
     # Ajout du logo
-    if logo_path:
-        logo = ImageReader(logo_path)
+    if os.path.exists(LOGO_PATH):
+        logo = ImageReader(LOGO_PATH)
         c.drawImage(logo, 50, height - 100, width=100, height=50)
 
     # Informations client
@@ -81,6 +69,12 @@ def generer_facture_pdf(details, total, nom, prenom, numero_sap, logo_path):
     return temp_file.name
 
 # Interface utilisateur Streamlit
+st.set_page_config(page_title="Calculatrice LPPR", layout="wide")
+
+# Ajout du logo en haut à gauche
+if os.path.exists(LOGO_PATH):
+    st.sidebar.image(LOGO_PATH, width=100)
+
 st.title("💉 Calculatrice LPPR Complète avec Facture")
 
 # Informations client
@@ -88,7 +82,6 @@ st.header("📋 Informations du client")
 nom = st.text_input("Nom")
 prenom = st.text_input("Prénom")
 numero_sap = st.text_input("Numéro client SAP")
-logo_path = st.file_uploader("Téléchargez un logo (PNG ou JPG)", type=["png", "jpg", "jpeg"])
 
 # Forfait d'installation
 st.header("📌 Forfaits d'installation")
@@ -138,7 +131,7 @@ if st.button("🧮 Calculer et Générer Facture"):
     if not nom or not prenom or not numero_sap:
         st.error("⚠️ Veuillez remplir les informations du client pour générer la facture.")
     else:
-        pdf_file = generer_facture_pdf(details, total, nom, prenom, numero_sap, logo_path)
+        pdf_file = generer_facture_pdf(details, total, nom, prenom, numero_sap)
         with open(pdf_file, "rb") as file:
             st.download_button("💾 Télécharger la facture", file, file_name="facture_lppr.pdf", mime="application/pdf")
 
