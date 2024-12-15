@@ -1,87 +1,90 @@
 import streamlit as st
 import pandas as pd
 
-# Données des forfaits complets
-FORFAITS_INSTALLATION = {
-    "PERFADOM1": {"description": "Installation 1 - Système actif électrique", "tarif": 297.67},
-    "PERFADOM2": {"description": "Installation 2 - Système actif électrique", "tarif": 137.38},
-    "PERFADOM3": {"description": "Installation rempli ES - Système actif électrique", "tarif": 137.38},
-    "PERFADOM4": {"description": "Installation 1 - Diffuseur", "tarif": 190.81},
-    "PERFADOM5": {"description": "Installation 2 - Diffuseur", "tarif": 87.77},
-    "PERFADOM6": {"description": "Installation et suivi - Gravité", "tarif": 38.16},
+# Données complètes : Installation, Suivi, Consommables (PERFADOM, NUT ENT, NUT PAR, IMMUNO)
+FORFAITS = {
+    # Installations
+    "SA_I1": {"description": "Installation 1 - Système actif électrique", "tarif": 297.67, "type": "Installation", "cat": "SA"},
+    "DIFF_I1": {"description": "Installation 1 - Diffuseur", "tarif": 190.81, "type": "Installation", "cat": "DIFF"},
+    "GRAV_I1": {"description": "Installation et suivi - Gravité", "tarif": 38.16, "type": "Installation", "cat": "GRAV"},
+    "NUT_ENT_I": {"description": "Installation - Nutrition entérale", "tarif": 146.53, "type": "Installation", "cat": "NUT_ENT"},
+    "NUT_PAR_I": {"description": "Installation - Nutrition parentérale", "tarif": 325.00, "type": "Installation", "cat": "NUT_PAR"},
+
+    # Suivi
+    "SA_S1": {"description": "Suivi hebdomadaire - Système actif", "tarif": 83.95, "type": "Suivi", "cat": "SA"},
+    "DIFF_S1": {"description": "Suivi hebdomadaire - Diffuseur", "tarif": 38.16, "type": "Suivi", "cat": "DIFF"},
+    "NUT_ENT_S1": {"description": "Suivi hebdomadaire - Nutrition entérale sans pompe", "tarif": 50.33, "type": "Suivi", "cat": "NUT_ENT"},
+    "NUT_ENT_S2": {"description": "Suivi hebdomadaire - Nutrition entérale avec pompe", "tarif": 68.52, "type": "Suivi", "cat": "NUT_ENT"},
+    "NUT_PAR_S1": {"description": "Suivi hebdomadaire - Nutrition parentérale", "tarif": 158.33, "type": "Suivi", "cat": "NUT_PAR"},
+
+    # Consommables
+    "SA_C1": {"description": "Consommables - 1 perf/jour système actif", "tarif": 200.12, "type": "Consommables", "cat": "SA"},
+    "DIFF_C1": {"description": "Consommables - 1 perf/jour diffuseur", "tarif": 180.10, "type": "Consommables", "cat": "DIFF"},
+    "IMMUNO_SC_C": {"description": "Immunothérapie SC - 1 perf/semaine", "tarif": 39.96, "type": "Consommables", "cat": "IMMUNO"},
+    "IMMUNO_IV_C": {"description": "Immunothérapie IV - 1 perf/jour", "tarif": 39.96, "type": "Consommables", "cat": "IMMUNO"},
+    "NUT_PAR_C": {"description": "Consommables - Nutrition parentérale", "tarif": 95.84, "type": "Consommables", "cat": "NUT_PAR"},
 }
-
-FORFAITS_SUIVI = {
-    "PERFADOM7": {"description": "Suivi hebdo - Système actif", "tarif": 83.95},
-    "PERFADOM8": {"description": "Suivi hebdo - Diffuseur", "tarif": 38.16},
-    "NUT_ENT2": {"description": "Suivi hebdo - Nutrition entérale sans pompe", "tarif": 50.33},
-    "NUT_ENT3": {"description": "Suivi hebdo - Nutrition entérale avec pompe", "tarif": 68.52},
-}
-
-FORFAITS_CONSO = {
-    "PERFADOM17": {"description": "Consommables Gravité < 15 perf/28 jours", "tarif": 9.00},
-    "PERFADOM18": {"description": "Consommables Gravité - 1 perf/j", "tarif": 63.35},
-    "PERFADOM30": {"description": "Consommables Système actif - 1 perf/j", "tarif": 200.12},
-    "PERFADOM31": {"description": "Consommables Système actif - 2 perf/j", "tarif": 379.14},
-    "PERFADOM37": {"description": "Consommables Diffuseur - 1 perf/j", "tarif": 180.10},
-    "IMMUNO_SC": {"description": "Consommables Immunothérapie SC - 1 perf", "tarif": 39.96},
-    "IMMUNO_IV": {"description": "Consommables Immunothérapie IV - 1 perf/j", "tarif": 39.96},
-}
-
-# Fonction pour afficher un tableau récapitulatif
-def afficher_tableau(forfaits_selectionnes):
-    if not forfaits_selectionnes:
-        st.warning("Aucun forfait sélectionné.")
-        return
-
-    # Créer un tableau récapitulatif
-    data = [
-        {"Catégorie": cat, "Description": val["description"], "Quantité": qte, "Coût total (€)": val["tarif"] * qte}
-        for cat, forfaits in forfaits_selectionnes.items()
-        for key, (val, qte) in forfaits.items()
-        if qte > 0
-    ]
-    df = pd.DataFrame(data)
-    st.table(df)
-
-    # Calcul du coût total global
-    total = sum(item["Coût total (€)"] for item in data)
-    st.success(f"💰 **Coût total global : {total:.2f} €**")
 
 # Interface utilisateur Streamlit
-st.title("💉 Calculatrice Complète - LPPR")
-st.write("Sélectionnez vos forfaits et les quantités associées pour calculer le coût total.")
+st.title("💉 Calculatrice LPPR Complète - Filtrée")
 
-# Sélection des forfaits par catégories
-st.header("📌 Forfaits d'installation")
+# Choix du forfait d'installation
+st.header("📌 Choix du forfait d'installation")
+installations = {k: v for k, v in FORFAITS.items() if v["type"] == "Installation"}
 installation_key = st.selectbox(
-    "Choisissez un forfait d'installation :", 
-    options=["Aucun"] + list(FORFAITS_INSTALLATION.keys()),
-    format_func=lambda k: f"{FORFAITS_INSTALLATION[k]['description']} ({FORFAITS_INSTALLATION[k]['tarif']} €)" if k != "Aucun" else "Aucun",
+    "Sélectionnez un forfait d'installation :", ["Aucun"] + list(installations.keys()),
+    format_func=lambda k: f"{installations[k]['description']} ({installations[k]['tarif']} €)" if k != "Aucun" else "Aucun"
 )
 
+# Déterminer la catégorie sélectionnée
+selected_cat = installations[installation_key]["cat"] if installation_key != "Aucun" else None
+
+# Filtrer les suivis en fonction de la catégorie sélectionnée
 st.header("📋 Forfaits de suivi")
+if selected_cat:
+    suivis = {k: v for k, v in FORFAITS.items() if v["type"] == "Suivi" and v["cat"] == selected_cat}
+else:
+    suivis = {}
+
 suivi_selectionnes = {}
-for key, val in FORFAITS_SUIVI.items():
-    qte = st.number_input(f"{val['description']} ({val['tarif']} €)", min_value=0, step=1, key=f"suivi_{key}")
+for key, value in suivis.items():
+    qte = st.number_input(f"{value['description']} ({value['tarif']} €)", min_value=0, step=1, key=f"suivi_{key}")
     if qte > 0:
-        suivi_selectionnes[key] = (val, qte)
+        suivi_selectionnes[key] = qte
 
+# Consommables disponibles sans restriction
 st.header("🛠️ Forfaits de consommables")
+consommables = {k: v for k, v in FORFAITS.items() if v["type"] == "Consommables"}
 conso_selectionnes = {}
-for key, val in FORFAITS_CONSO.items():
-    qte = st.number_input(f"{val['description']} ({val['tarif']} €)", min_value=0, step=1, key=f"conso_{key}")
+for key, value in consommables.items():
+    qte = st.number_input(f"{value['description']} ({value['tarif']} €)", min_value=0, step=1, key=f"conso_{key}")
     if qte > 0:
-        conso_selectionnes[key] = (val, qte)
+        conso_selectionnes[key] = qte
 
-# Récapitulatif et calcul
+# Calcul et affichage du récapitulatif
 if st.button("🧮 Calculer le coût total"):
-    forfaits_selectionnes = {}
-    if installation_key != "Aucun":
-        forfaits_selectionnes["Installation"] = {installation_key: (FORFAITS_INSTALLATION[installation_key], 1)}
-    if suivi_selectionnes:
-        forfaits_selectionnes["Suivi"] = suivi_selectionnes
-    if conso_selectionnes:
-        forfaits_selectionnes["Consommables"] = conso_selectionnes
+    total = 0
+    details = []
 
-    afficher_tableau(forfaits_selectionnes)
+    # Installation
+    if installation_key != "Aucun":
+        total += installations[installation_key]["tarif"]
+        details.append([installations[installation_key]["description"], 1, installations[installation_key]["tarif"]])
+
+    # Suivis
+    for key, qte in suivi_selectionnes.items():
+        cout = suivis[key]["tarif"] * qte
+        total += cout
+        details.append([suivis[key]["description"], qte, cout])
+
+    # Consommables
+    for key, qte in conso_selectionnes.items():
+        cout = consommables[key]["tarif"] * qte
+        total += cout
+        details.append([consommables[key]["description"], qte, cout])
+
+    # Affichage du tableau récapitulatif
+    df = pd.DataFrame(details, columns=["Description", "Quantité", "Coût total (€)"])
+    st.table(df)
+
+    st.success(f"💰 Coût total global : {total:.2f} €")
