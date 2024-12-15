@@ -5,29 +5,48 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.utils import ImageReader
 import tempfile
 
-# Intégration complète des forfaits (PERFADOM, NUTRITION, IMMUNO)
+# Intégration complète de toutes les lignes PERFADOM, NUT ENT, NUT PAR, IMMUNO
 FORFAITS = {
     # Installations
     "SA_I1": {"description": "Installation 1 - Système actif électrique", "tarif": 297.67, "type": "Installation", "cat": "SA"},
+    "SA_I2": {"description": "Installation 2 - Système actif électrique", "tarif": 137.38, "type": "Installation", "cat": "SA"},
     "DIFF_I1": {"description": "Installation 1 - Diffuseur", "tarif": 190.81, "type": "Installation", "cat": "DIFF"},
+    "DIFF_I2": {"description": "Installation 2 - Diffuseur", "tarif": 87.77, "type": "Installation", "cat": "DIFF"},
     "GRAV_I1": {"description": "Installation et suivi - Gravité", "tarif": 38.16, "type": "Installation", "cat": "GRAV"},
     "NUT_ENT_I": {"description": "Installation - Nutrition entérale", "tarif": 146.53, "type": "Installation", "cat": "NUT_ENT"},
     "NUT_PAR_I": {"description": "Installation - Nutrition parentérale", "tarif": 325.00, "type": "Installation", "cat": "NUT_PAR"},
 
-    # Suivi
+    # Suivis
     "SA_S1": {"description": "Suivi hebdomadaire - Système actif", "tarif": 83.95, "type": "Suivi", "cat": "SA"},
     "DIFF_S1": {"description": "Suivi hebdomadaire - Diffuseur", "tarif": 38.16, "type": "Suivi", "cat": "DIFF"},
     "NUT_ENT_S1": {"description": "Suivi hebdomadaire - Nutrition entérale sans pompe", "tarif": 50.33, "type": "Suivi", "cat": "NUT_ENT"},
     "NUT_ENT_S2": {"description": "Suivi hebdomadaire - Nutrition entérale avec pompe", "tarif": 68.52, "type": "Suivi", "cat": "NUT_ENT"},
     "NUT_PAR_S1": {"description": "Suivi hebdomadaire - Nutrition parentérale", "tarif": 158.33, "type": "Suivi", "cat": "NUT_PAR"},
 
-    # Consommables
-    "SA_C1": {"description": "Consommables - 1 perf/jour système actif", "tarif": 200.12, "type": "Consommables", "cat": "SA"},
-    "DIFF_C1": {"description": "Consommables - 1 perf/jour diffuseur", "tarif": 180.10, "type": "Consommables", "cat": "DIFF"},
-    "IMMUNO_SC_C": {"description": "Immunothérapie SC - 1 perf/semaine", "tarif": 39.96, "type": "Consommables", "cat": "IMMUNO"},
-    "IMMUNO_IV_C": {"description": "Immunothérapie IV - 1 perf/jour", "tarif": 39.96, "type": "Consommables", "cat": "IMMUNO"},
+    # Consommables - Gravité
+    "GRAV_C1": {"description": "Gravité - 1 perf/jour", "tarif": 63.35, "type": "Consommables", "cat": "GRAV"},
+    "GRAV_C2": {"description": "Gravité - 2 perf/jour", "tarif": 119.83, "type": "Consommables", "cat": "GRAV"},
+    "GRAV_C3": {"description": "Gravité - Plus de 2 perf/jour", "tarif": 170.20, "type": "Consommables", "cat": "GRAV"},
+
+    # Consommables - Système Actif
+    "SA_C1": {"description": "Système actif - 1 perf/jour", "tarif": 200.12, "type": "Consommables", "cat": "SA"},
+    "SA_C2": {"description": "Système actif - 2 perf/jour", "tarif": 379.14, "type": "Consommables", "cat": "SA"},
+    "SA_C3": {"description": "Système actif - 3 perf/jour", "tarif": 539.39, "type": "Consommables", "cat": "SA"},
+    "SA_C4": {"description": "Système actif - Plus de 3 perf/jour", "tarif": 679.32, "type": "Consommables", "cat": "SA"},
+
+    # Consommables - Diffuseur
+    "DIFF_C1": {"description": "Diffuseur - 1 perf/jour", "tarif": 180.10, "type": "Consommables", "cat": "DIFF"},
+    "DIFF_C2": {"description": "Diffuseur - 2 perf/jour", "tarif": 341.22, "type": "Consommables", "cat": "DIFF"},
+    "DIFF_C3": {"description": "Diffuseur - 3 perf/jour", "tarif": 485.45, "type": "Consommables", "cat": "DIFF"},
+    "DIFF_C4": {"description": "Diffuseur - Plus de 3 perf/jour", "tarif": 611.38, "type": "Consommables", "cat": "DIFF"},
+
+    # Consommables - Nutrition parentérale
     "NUT_PAR_C1": {"description": "Consommables parentérale < 5j/7", "tarif": 95.84, "type": "Consommables", "cat": "NUT_PAR"},
     "NUT_PAR_C2": {"description": "Consommables parentérale 6-7j/7", "tarif": 158.33, "type": "Consommables", "cat": "NUT_PAR"},
+
+    # Consommables - Immunothérapie
+    "IMMUNO_SC_C": {"description": "Immunothérapie SC - 1 perf/semaine", "tarif": 39.96, "type": "Consommables", "cat": "IMMUNO"},
+    "IMMUNO_IV_C": {"description": "Immunothérapie IV - 1 perf/jour", "tarif": 39.96, "type": "Consommables", "cat": "IMMUNO"},
 }
 
 # Fonction pour générer la facture PDF
