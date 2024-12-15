@@ -1,76 +1,46 @@
 import streamlit as st
 
-# Liste des forfaits PERFADOM avec leurs descriptions, tarifs et fréquences
+# Données des forfaits PERFADOM, nutrition et immunothérapie
 FORFAITS = {
-    # Forfaits d'installation (uniques)
-    "Installation 1": {
-        "description": "Installation initiale - Système actif électrique",
-        "tarif": 390.00,
-        "frequence": "Unique",
-        "type": "Installation",
-    },
-    "Installation 2": {
-        "description": "Installation initiale - Système passif/diffuseur",
-        "tarif": 250.00,
-        "frequence": "Unique",
-        "type": "Installation",
-    },
-    "Installation 3": {
-        "description": "Installation initiale - Perfusion par gravité",
-        "tarif": 50.00,
-        "frequence": "Unique",
-        "type": "Installation",
-    },
-    # Forfaits de suivi (hebdomadaires)
-    "Suivi actif électrique": {
-        "description": "Suivi hebdomadaire - Système actif électrique",
-        "tarif": 110.00,
-        "frequence": "Hebdomadaire",
-        "type": "Suivi",
-    },
-    "Suivi diffuseur": {
-        "description": "Suivi hebdomadaire - Diffuseur",
-        "tarif": 50.00,
-        "frequence": "Hebdomadaire",
-        "type": "Suivi",
-    },
-    # Forfaits de consommables
-    "Consommables 1/semaine": {
-        "description": "Consommables - 1 perfusion/semaine avec système actif ou diffuseur",
-        "tarif": 39.00,
-        "frequence": "Hebdomadaire",
-        "type": "Consommables",
-    },
-    "Consommables 1/jour actif": {
-        "description": "Consommables - 1 perfusion/jour avec système actif ou diffuseur",
-        "tarif": 269.00,
-        "frequence": "Quotidien",
-        "type": "Consommables",
-    },
-    "Consommables 1/jour gravité": {
-        "description": "Consommables - 1 perfusion/jour par gravité",
-        "tarif": 83.00,
-        "frequence": "Quotidien",
-        "type": "Consommables",
-    },
+    # PERFADOM Installation
+    "PERFADOM 1": {"description": "Installation - Système actif électrique", "tarif": 357.20, "frequence": "Unique", "type": "Installation"},
+    "PERFADOM 2": {"description": "Installation - Système passif/diffuseur", "tarif": 250.00, "frequence": "Unique", "type": "Installation"},
+    "PERFADOM 3": {"description": "Installation - Gravité", "tarif": 50.00, "frequence": "Unique", "type": "Installation"},
+    # PERFADOM Suivi
+    "PERFADOM 7": {"description": "Suivi - Système actif électrique (hebdo)", "tarif": 100.75, "frequence": "Hebdomadaire", "type": "Suivi"},
+    "PERFADOM 8": {"description": "Suivi - Diffuseur (hebdo)", "tarif": 45.79, "frequence": "Hebdomadaire", "type": "Suivi"},
+    # PERFADOM Consommables
+    "PERFADOM 13": {"description": "Consommables - 1 perfusion/jour (actif ou diffuseur)", "tarif": 246.81, "frequence": "Quotidien", "type": "Consommables"},
+    "PERFADOM 14": {"description": "Consommables - 2 perfusions/jour (actif ou diffuseur)", "tarif": 467.59, "frequence": "Quotidien", "type": "Consommables"},
+    "PERFADOM 18": {"description": "Consommables - 1 perfusion/jour (gravité)", "tarif": 76.02, "frequence": "Quotidien", "type": "Consommables"},
+    # Nutrition Entérale
+    "Nutrition Entérale - Installation": {"description": "Installation initiale - Nutrition entérale", "tarif": 150.00, "frequence": "Unique", "type": "Installation"},
+    "Nutrition Entérale - Suivi": {"description": "Suivi - Nutrition entérale (hebdo)", "tarif": 60.00, "frequence": "Hebdomadaire", "type": "Suivi"},
+    # Nutrition Parentérale
+    "Nutrition Parentérale - Installation": {"description": "Installation initiale - Nutrition parentérale", "tarif": 450.00, "frequence": "Unique", "type": "Installation"},
+    "Nutrition Parentérale - Suivi": {"description": "Suivi - Nutrition parentérale (hebdo)", "tarif": 200.00, "frequence": "Hebdomadaire", "type": "Suivi"},
+    # Immunothérapie
+    "Immunothérapie - Installation": {"description": "Installation initiale - Immunothérapie", "tarif": 500.00, "frequence": "Unique", "type": "Installation"},
+    "Immunothérapie - Suivi": {"description": "Suivi - Immunothérapie (hebdo)", "tarif": 250.00, "frequence": "Hebdomadaire", "type": "Suivi"},
 }
 
 # Titre de l'application
-st.title("Calculatrice PERFADOM - Respect des règles LPPR")
+st.title("Calculatrice PERFADOM, Nutrition et Immunothérapie")
 
 st.write("""
-Cette application permet de calculer automatiquement le coût total d'un traitement PERFADOM tout en respectant les règles de la LPPR :
-- Un seul forfait d'installation est autorisé par traitement.
-- Les forfaits de suivi et de consommables sont calculés en fonction de la durée du traitement.
+Cette application calcule automatiquement le coût total d'un traitement en fonction des forfaits sélectionnés et de la durée, tout en respectant les règles LPPR :
+- Un seul forfait d'installation est autorisé.
+- Les forfaits de consommables et de suivi sont calculés en fonction de la durée du traitement.
 """)
 
-# Sélection des forfaits
+# Sélection du forfait d'installation
 installation_selectionnee = st.selectbox(
-    "Sélectionnez un forfait d'installation (obligatoire) :",
+    "Sélectionnez un forfait d'installation :",
     options=["Aucun"] + [key for key in FORFAITS if FORFAITS[key]["type"] == "Installation"],
     format_func=lambda key: f"{key} - {FORFAITS[key]['description']}" if key != "Aucun" else "Aucun",
 )
 
+# Sélection des autres forfaits (suivi et consommables)
 autres_forfaits = st.multiselect(
     "Sélectionnez les forfaits de suivi et de consommables :",
     options=[key for key in FORFAITS if FORFAITS[key]["type"] != "Installation"],
