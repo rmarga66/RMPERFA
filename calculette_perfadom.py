@@ -1,15 +1,9 @@
 import streamlit as st
 import pandas as pd
-import os
-
-# Vérification de l'installation de Reportlab
-try:
-    from reportlab.pdfgen import canvas
-    from reportlab.lib.pagesizes import A4
-    import tempfile
-    REPORTLAB_INSTALLED = True
-except ImportError:
-    REPORTLAB_INSTALLED = False
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.utils import ImageReader
+import tempfile
 
 # Intégration complète des forfaits (PERFADOM, NUTRITION, IMMUNO)
 FORFAITS = {
@@ -37,20 +31,31 @@ FORFAITS = {
 }
 
 # Fonction pour générer la facture PDF
-def generer_facture_pdf(details, total):
+def generer_facture_pdf(details, total, nom, prenom, numero_sap, logo_path):
     temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
     c = canvas.Canvas(temp_file.name, pagesize=A4)
     width, height = A4
 
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(50, height - 50, "Facture - Forfaits LPPR")
-    c.setFont("Helvetica", 12)
+    # Ajout du logo
+    if logo_path:
+        logo = ImageReader(logo_path)
+        c.drawImage(logo, 50, height - 100, width=100, height=50)
 
-    y = height - 100
+    # Informations client
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(50, height - 130, "Facture - Forfaits LPPR")
+    c.setFont("Helvetica", 12)
+    c.drawString(50, height - 160, f"Nom : {nom}")
+    c.drawString(50, height - 180, f"Prénom : {prenom}")
+    c.drawString(50, height - 200, f"Numéro client SAP : {numero_sap}")
+
+    # Tableau des forfaits
+    y = height - 240
     for detail in details:
         c.drawString(50, y, f"{detail[0]} - Quantité : {detail[1]} - Coût : {detail[2]:.2f} €")
         y -= 20
 
+    # Total
     c.setFont("Helvetica-Bold", 14)
     c.drawString(50, y - 20, f"Total à payer : {total:.2f} €")
     c.save()
@@ -59,55 +64,62 @@ def generer_facture_pdf(details, total):
 # Interface utilisateur Streamlit
 st.title("💉 Calculatrice LPPR Complète avec Facture")
 
-if not REPORTLAB_INSTALLED:
-    st.error("⚠️ Le module `reportlab` est manquant. Installez-le avec `pip install reportlab` pour générer les factures PDF.")
-else:
-    # Forfait d'installation
-    st.header("📌 Forfaits d'installation")
-    installation_key = st.selectbox(
-        "Sélectionnez un forfait d'installation :", ["Aucun"] + [k for k, v in FORFAITS.items() if v["type"] == "Installation"],
-        format_func=lambda k: f"{FORFAITS[k]['description']} ({FORFAITS[k]['tarif']} €)" if k != "Aucun" else "Aucun"
-    )
+# Informations client
+st.header("📋 Informations du client")
+nom = st.text_input("Nom")
+prenom = st.text_input("Prénom")
+numero_sap = st.text_input("Numéro client SAP")
+logo_path = st.file_uploader("Téléchargez un logo (PNG ou JPG)", type=["png", "jpg", "jpeg"])
 
-    selected_cat = FORFAITS[installation_key]["cat"] if installation_key != "Aucun" else None
+# Forfait d'installation
+st.header("📌 Forfaits d'installation")
+installation_key = st.selectbox(
+    "Sélectionnez un forfait d'installation :", ["Aucun"] + [k for k, v in FORFAITS.items() if v["type"] == "Installation"],
+    format_func=lambda k: f"{FORFAITS[k]['description']} ({FORFAITS[k]['tarif']} €)" if k != "Aucun" else "Aucun"
+)
 
-    # Forfaits de suivi
-    st.header("📋 Forfaits de suivi")
-    suivi_selectionnes = {}
-    suivis = {k: v for k, v in FORFAITS.items() if v["type"] == "Suivi" and v["cat"] == selected_cat}
-    for key, value in suivis.items():
-        qte = st.number_input(f"{value['description']} ({value['tarif']} €)", min_value=0, step=1, key=f"suivi_{key}")
+selected_cat = FORFAITS[installation_key]["cat"] if installation_key != "Aucun" else None
+
+# Forfaits de suivi
+st.header("📋 Forfaits de suivi")
+suivi_selectionnes = {}
+suivis = {k: v for k, v in FORFAITS.items() if v["type"] == "Suivi" and v["cat"] == selected_cat}
+for key, value in suivis.items():
+    qte = st.number_input(f"{value['description']} ({value['tarif']} €)", min_value=0, step=1, key=f"suivi_{key}")
+    if qte > 0:
+        suivi_selectionnes[key] = qte
+
+# Consommables
+st.header("🛠️ Consommables")
+conso_selectionnes = {}
+for key, value in FORFAITS.items():
+    if value["type"] == "Consommables":
+        qte = st.number_input(f"{value['description']} ({value['tarif']} €)", min_value=0, step=1, key=f"conso_{key}")
         if qte > 0:
-            suivi_selectionnes[key] = qte
+            conso_selectionnes[key] = qte
 
-    # Consommables
-    st.header("🛠️ Consommables")
-    conso_selectionnes = {}
-    for key, value in FORFAITS.items():
-        if value["type"] == "Consommables":
-            qte = st.number_input(f"{value['description']} ({value['tarif']} €)", min_value=0, step=1, key=f"conso_{key}")
-            if qte > 0:
-                conso_selectionnes[key] = qte
+# Calcul et affichage
+if st.button("🧮 Calculer et Générer Facture"):
+    total = 0
+    details = []
 
-    # Calcul et affichage
-    if st.button("🧮 Calculer et Générer Facture"):
-        total = 0
-        details = []
+    if installation_key != "Aucun":
+        tarif = FORFAITS[installation_key]["tarif"]
+        total += tarif
+        details.append([FORFAITS[installation_key]["description"], 1, tarif])
 
-        if installation_key != "Aucun":
-            tarif = FORFAITS[installation_key]["tarif"]
-            total += tarif
-            details.append([FORFAITS[installation_key]["description"], 1, tarif])
+    for key, qte in {**suivi_selectionnes, **conso_selectionnes}.items():
+        tarif = FORFAITS[key]["tarif"] * qte
+        total += tarif
+        details.append([FORFAITS[key]["description"], qte, tarif])
 
-        for key, qte in {**suivi_selectionnes, **conso_selectionnes}.items():
-            tarif = FORFAITS[key]["tarif"] * qte
-            total += tarif
-            details.append([FORFAITS[key]["description"], qte, tarif])
+    df = pd.DataFrame(details, columns=["Description", "Quantité", "Coût total (€)"])
+    st.table(df)
 
-        df = pd.DataFrame(details, columns=["Description", "Quantité", "Coût total (€)"])
-        st.table(df)
-
-        pdf_file = generer_facture_pdf(details, total)
+    if not nom or not prenom or not numero_sap:
+        st.error("⚠️ Veuillez remplir les informations du client pour générer la facture.")
+    else:
+        pdf_file = generer_facture_pdf(details, total, nom, prenom, numero_sap, logo_path)
         with open(pdf_file, "rb") as file:
             st.download_button("💾 Télécharger la facture", file, file_name="facture_lppr.pdf", mime="application/pdf")
 
